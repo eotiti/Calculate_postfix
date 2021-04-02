@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace TimeExc
 {
@@ -17,45 +18,62 @@ namespace TimeExc
         {
             InitializeComponent();
         }
-        
-            
-        private void btn_start_Click(object sender, EventArgs e)
+        public static bool IsOperand(string str)
         {
-            string str= txt_input.Text.Trim();
-            arr = str.Split(' ');
-            
+            return Regex.Match(str, @"^\d+$|^([a-z]|[A-Z])$").Success;
+        }
+        public float EvaluatePostfix(string hauto)
+        {
+            Stack<float> stack = new Stack<float>();
+            hauto = hauto.Trim();
+
+            IEnumerable<string> enumer = hauto.Split(' ');
+
+            foreach (string kytu in enumer)
             {
-                
-                for (int i=0;i<arr.Length;i++)
+                //  xét phần tử tiếp theo nếu ko là toán tử thì push vào stack
+                if (IsOperand(kytu))
                 {
-                    txt_output.AppendText(arr[i]+" ");
+                    stack.Push(float.Parse(kytu));
                     
                 }
-            }   
-                
-        }
-        
-        private void btn_calc_Click(object sender, EventArgs e)
-        {
-            txt_output.Text = string.Empty;
-            if (arr != null && arr.Length > 0)
-            {
-                for (int i = 0; i < arr.Length; i++)
+                else
                 {
-                    for(int j=i+1;j< arr.Length;j++)
+                    // nếu là toán tử lôi 2 thằng vừa push ra ròi tính theo switch ... case
+                    float s1 = stack.Pop();
+                    float s2 = stack.Pop();
+                    
+                    
+                    switch (kytu)
                     {
-                        if (arr[j] == "+" || arr[j] == "-" || arr[j] == "*" || arr[j] == "/")
-                        {
-                            string temp = arr[j];
-                            arr[j] = arr[i];
-                            arr[i] = temp;
-                        }
+                        case "+":
+                            s2 = s2 + s1;
+                            break;
+                        case "-":
+                            s2 = s2 - s1;
+                            break;
+                        case "*":
+                            s2 = s2 * s1;
+                            break;
+                        case "/":
+                            s2 = s2 / s1;
+                            break;
+                        case "%":
+                            s2 = s2 % s1;
+                            break;
                     }
-                    txt_output.AppendText(arr[i] + " ");
-                }  
+                    stack.Push(s2);// tính xong push kq vào lại
+                }
             }
-              
+            return stack.Pop();// kết quả cuối cùng
+        }
 
+        private void btn_start_Click(object sender, EventArgs e)
+        {
+            string str = txt_input.Text.ToString();// gán dữ liệu
+            float kq = EvaluatePostfix(str);// xuất kết quả
+            txt_output.Text = kq.ToString();//in kết quả
+                
         }
     }
 }
